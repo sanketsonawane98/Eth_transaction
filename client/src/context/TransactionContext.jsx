@@ -8,38 +8,10 @@ export const TransactionContext = React.createContext();
 
 const { ethereum } = window;
 const getEthereumContract = () => {
-    const address = "0xF4c964B7045e998E00E877E025b8CF80A3ec4962"
-    let walletPrivateKey = "ec4ac6a10ed5cf237afa9ef3851c337dfe75266b60d8ad0dfe4eadeeab22bce"
-    // let hexString = walletPrivateKey.toString(16);
-    // walletPrivateKey = parseInt(hexString, 16);
-    // const provider = new ethers.providers.Web3Provider(ethereum);// Web3Provider
-    // console.log("Provdier is ", provider)
-    // // const signer = new ethers.VoidSigner(address, provider)
-    // const signer = new ethers.Wallet(walletPrivateKey, provider);
+    const provider = new ethers.providers.Web3Provider(ethereum); // Web3Provider
+    const signer = provider.getSigner();
+    const transactionContract = new ethers.Contract(contractAddress, contractABI, signer);
 
-    // // const signer = provider.getSigner();
-    // console.log("Signer address is ", signer)
-    console.log("wont run below this")
-    // const transactionContract = new ethers.Contract(contractAddress, contractABI, signer);
-    // console.log("Transaction Contract is ", transactionContract)
-
-    //Alt method
-    const INFURA_SECRET_KEY = "d5a59a5f9b804981a1547791c8abb69a"
-    const provider = new ethers.providers.JsonRpcProvider(
-        `https://sepolia.infura.io/v3/${INFURA_SECRET_KEY}`
-    );
-    console.log(provider, "contract");
-
-    //problem starts here
-    const contract = new ethers.Contract(
-        address,
-        contractABI,
-        provider
-    );
-    const signer = new ethers.Wallet(`${walletPrivateKey}`, provider);
-    const contractWithSigner = contract.connect(signer);
-    //till here;
-    transactionContract = contractWithSigner
     return transactionContract;
 };
 
@@ -61,12 +33,13 @@ export const TransactionProvider = ({ children }) => { //Learn More About Contex
 
     const getAllTransactions = async () => {
         try {
-            if (!ethereum) return alert("Please Install Metamask and Use Ropsten Testnet");
+            if (!ethereum) return alert("Please Install Metamask and Use Sepolia Testnet");
             const transactionContract = getEthereumContract();
             const availableTransactions = await transactionContract.getAllTransactions();
             const structuredTransactions = availableTransactions.map((transaction) => ({
                 addressTo: transaction.receiver,
                 addressFrom: transaction.sender,
+                //timing in linux epoch
                 timestamp: new Date(transaction.timestamp.toNumber() * 1000).toLocaleString(),
                 message: transaction.message,
                 keyword: transaction.keyword,
@@ -84,12 +57,11 @@ export const TransactionProvider = ({ children }) => { //Learn More About Contex
 
         try {
 
-            if (!ethereum) return alert("Please Install Metamask and Use Ropsten Testnet");
+            if (!ethereum) return alert("Please Install Metamask and Use Sepolia Testnet");
 
             const accounts = await ethereum.request({ method: 'eth_accounts' });
 
             if (accounts.length) {
-                console.log("wallet checked ok")
                 setCurrentAccount(accounts[0]);
 
                 getAllTransactions();
@@ -111,6 +83,7 @@ export const TransactionProvider = ({ children }) => { //Learn More About Contex
         try {
             const transactionContract = getEthereumContract();
             const transactionCount = await transactionContract.getTransaction(); // getTransaction method of the smartContract
+            //setiing transaction in sequence 
             window.localStorage.setItem('transactionCount', transactionCount)
 
         } catch (error) {
@@ -139,26 +112,19 @@ export const TransactionProvider = ({ children }) => { //Learn More About Contex
     // Method having logic of Transferring Test Ether
     const sendTransaction = async () => {
         try {
-            if (!ethereum) return alert("Please Install Metamask and Use Sepolia Testnet");
+            if (!ethereum) return alert("Please Install Metamask and Use Ropsten Testnet");
             // Fetching Data From The Form
 
             const { addressTo, amount, keyword, message } = formData;
-            console.log("Just before execurting11")
-            //code dosent execute below this
-            const transactionContract = getEthereumContract();
-
-            const parsedAmount = "0.0001"//= ethers.utils.parseEther(amount); 
+            const transactionContract = getEthereumContract(); 
+            const parsedAmount = ethers.utils.parseEther(amount); 
             await ethereum.request({
                 method: 'eth_sendTransaction',
                 params: [{
-                    /*from: currentAccount,
+                    from: currentAccount,
                     to: addressTo,
                     gas: '0x5208', //21000 GWEI
-                    value: parsedAmount._hex, */
-                    from: "0xF4c964B7045e998E00E877E025b8CF80A3ec4962",
-                    to: "0x207fFd9aaf14cABda9382143e8Fa80952e810072",
-                    gas: '0x5208', //21000 GWEI
-                    value: parsedAmount._hex,
+                    value: parsedAmount._hex, // 
                 }]
             });
 
@@ -174,7 +140,7 @@ export const TransactionProvider = ({ children }) => { //Learn More About Contex
 
             setTransactionCount(transactionCount.toNumber());
             location.reload() // reloads the window after sucessfull transaction
-
+            
         } catch (error) {
             console.log(error);
             // throw new Error("Unable to Execute Transaction Due to Absence of Ethereum Object");

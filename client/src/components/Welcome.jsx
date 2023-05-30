@@ -16,7 +16,7 @@ const Input = ({ placeholder, name, type, value, handleChange }) => (
         step="0.0001"
         value={value}
         onChange={(e) => handleChange(e, name)}
-        className="my-2 w-full  rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism"
+        className="my-2 w-full  rounded-md p-2 outline-none bg-transparent text-green border-none text-md white-glassmorphism"
     />
 
 );
@@ -28,12 +28,11 @@ const Welcome = () => {
 
     const handleSubmit = (e) => {
         const { addressTo, amount, keyword, message } = formData;
-        console.log("Inside handleSubmit")
-        //e.preventDefault();
-        
+
+        e.preventDefault();
+
         if (!addressTo || !amount || !message || !keyword) return;
-        
-        console.log("Inside handleSubmit11")
+
         sendTransaction();
 
 
@@ -103,7 +102,7 @@ const Welcome = () => {
                         </div>
                     </div>
 
-                    <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center blue-glassmorphism">
+                    <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center text-white blue-glassmorphism">
 
                         <Input placeholder="Address To" name="addressTo" type="text" handleChange={handleChange} />
 
